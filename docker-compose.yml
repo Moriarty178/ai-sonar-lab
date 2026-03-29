@@ -1,0 +1,76 @@
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    networks:
+      - ai-net
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - ai-net
+    restart: unless-stopped
+    # Tùy chọn: tăng tài nguyên nếu máy bạn mạnh
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main
+    container_name: litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    entrypoint: [ "litellm" ]
+    command:
+      - "--config"
+      - "/app/config.yaml"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "4000"
+      - "--debug"        # ✅ sửa lại chỗ này
+      - "--num_workers"
+      - "1"
+    depends_on:
+      - ollama
+    networks:
+      - ai-net
+
+  python-runner:
+    build: ./python-app
+    container_name: python-runner
+    depends_on:
+      - sonarqube
+      - litellm
+    env_file:
+      - .env
+    networks:
+      - ai-net
+    command: ["python", "app.py"]
+    restart: unless-stopped
+
+networks:
+  ai-net:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  sonarqube_data:

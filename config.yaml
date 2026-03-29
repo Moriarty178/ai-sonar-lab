@@ -1,0 +1,14 @@
+#model_list:
+#  - model_name: ollama/llama3
+#    litellm_params:
+#      model: ollama/llama3
+#      api_base: http://ollama:11434
+model_list:
+  - model_name: ollama/tinyllama
+    litellm_params:
+      model: tinyllama
+      api_base: http://ollama:11434
+
+litellm_settings:
+  set_verbose: true
+  drop_params: true
