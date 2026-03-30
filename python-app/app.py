@@ -1,4 +1,5 @@
 import requests
+import time
 import os
 from dotenv import load_dotenv
 
@@ -14,6 +15,22 @@ AI_API_URL = os.getenv("AI_API_URL")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL")
+
+def wait_for_sonar():
+    print("⏳ Waiting for SonarQube...")
+    for i in range(20):
+        try:
+            r = requests.get(f"{SONAR_URL}/api/system/status")
+            if r.status_code == 200:
+                print("✅ SonarQube is ready")
+                return
+        except:
+            pass
+
+        print(f"Retry {i+1}/20...")
+        time.sleep(5)
+
+    raise Exception("❌ SonarQube not ready")
 
 
 def get_sonarqube_issues():
@@ -45,7 +62,7 @@ def ask_ai(prompt):
         }
 
         payload = {
-            "model": OPENAI_MODEL,
+            "model": "tinyllama",
             "messages": [{"role": "user", "content": prompt}]
         }
 
@@ -53,7 +70,7 @@ def ask_ai(prompt):
             AI_API_URL,
             headers=headers,
             json=payload,
-            timeout=60
+            timeout=300
         )
 
         print("DEBUG STATUS:", r.status_code)
@@ -69,6 +86,8 @@ def ask_ai(prompt):
 
 def main():
     print("🚀 Start scanning...\n")
+
+    wait_for_sonar()
 
     issues = get_sonarqube_issues()
 

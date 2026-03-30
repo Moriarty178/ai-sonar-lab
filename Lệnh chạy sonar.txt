@@ -1,13 +1,13 @@
 # Vào thư mục chứa dự án rôi thực hiện quét lỗi bằng sonar-sacnner
 docker run --rm `
   -e SONAR_HOST_URL="http://host.docker.internal:9000" `
-  -e SONAR_TOKEN="squ_ebd122a112e418831767c15e79ed006e28c1e5c5" `
+  -e SONAR_TOKEN="squ_abdacfcadad607ffe336bab2b2e509b6a8fd972d" `
   -v "${PWD}:/usr/src" `
   sonarsource/sonar-scanner-cli
 
 
 
-curl -u squ_ebd122a112e418831767c15e79ed006e28c1e5c5: `
+curl -u squ_abdacfcadad607ffe336bab2b2e509b6a8fd972d: `
 "http://localhost:9000/api/issues/search?componentKeys=demo_project"
 
 
@@ -18,4 +18,20 @@ Invoke-RestMethod `
   -Uri "http://localhost:9000/api/issues/search?componentKeys=demo_project" `
   -Headers @{ Authorization = "Basic $( [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("squ_ea8b13c73e4d20ff0bec37156a31ad425ad22f9b:")) )" }
 ## Cách 2:
-curl.exe -u squ_ebd122a112e418831767c15e79ed006e28c1e5c5: "http://localhost:9000/api/issues/search?componentKeys=demo_project"
+curl.exe -u squ_abdacfcadad607ffe336bab2b2e509b6a8fd972d: "http://localhost:9000/api/issues/search?componentKeys=demo_project"
+
+
+
+# 1. start system
+docker compose up -d
+# 2. pull model
+docker exec -it ollama ollama pull tinyllama
+# 3. verify
+docker exec -it ollama ollama list
+# 4. Test Ollama trực tiếp
+docker exec -it ollama ollama run tinyllama
+
+docker exec -it python-runner env | findstr OPENAI_MODEL
+
+
+curl -X POST http://localhost:11434/api/generate -d '{'model': 'tinyllama', 'prompt': 'Explain this error: A NullPointerException'}'
