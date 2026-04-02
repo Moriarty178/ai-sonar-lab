@@ -83,6 +83,33 @@ def ask_ai(prompt):
 
         return data['choices'][0]['message']['content']
 
+    def get_issue_code_context(issue_key):
+        """Lấy đoạn code snippet gây lỗi"""
+        url = f"{SONAR_URL}/api/sources/issue_snippets"
+        params = {'issueKey': issue_key}
+
+        try:
+            response = requests.get(url, params=params, auth=(SONAR_TOKEN, ""), timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"⚠️ Không lấy được snippet cho issue {issue_key}: {e}")
+            return None
+
+    def format_snippet_for_ai(snippet_data):
+        """Chuyển snippet thành text dễ gửi cho AI"""
+        if not snippet_data or 'components' not in snippet_data:
+            return "Không có snippet code."
+
+        text = ""
+        for component_key, component in snippet_data['components'].items():
+            text += f"File: {component_key}\n"
+            if 'lines' in component:
+                for line in component['lines']:
+                    text += f"{line['line']:4d} | {line.get('code', '')}\n"
+            text += "-" * 60 + "\n"
+        return text
+
 
 def main():
     print("🚀 Start scanning...\n")
